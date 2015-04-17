@@ -52,11 +52,22 @@ public class RobotLearning1 {
     
     public static void main(String[] args){
         RobotLearning1 rl = new RobotLearning1();
+        System.out.println("Task 1:");
         double expVal = 0.0;
-        for(int i = 0;i<8;i++){
-            expVal += rl.expectedValue(rl.getReward(rl.chooseAction()));
+        expVal= rl.expectedValue(rl.getReward(rl.a1))+
+                    rl.expectedValue(rl.getReward(rl.a2))+
+                    rl.expectedValue(rl.getReward(rl.a3))+
+                    rl.expectedValue(rl.getReward(rl.a4));
+        System.out.println("Expected value: "+expVal);
+        System.out.println("--------------------------------------------------");
+        System.out.println("Task 2:");
+        double allRew = 0.0;
+        for(int i=0;i<1000;i++){
+            allRew += rl.getReward(rl.chooseAction());
         }
-        System.out.println(expVal);
+        System.out.println("Average reward: "+allRew/1000);
+        System.out.println("--------------------------------------------------");
+            
     }
 
 }
