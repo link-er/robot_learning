@@ -54,11 +54,17 @@ public class RobotLearning1 {
         RobotLearning1 rl = new RobotLearning1();
         System.out.println("Task 1:");
         double expVal = 0.0;
+        double randExpVal = 0.0;
         expVal= rl.expectedValue(rl.getReward(rl.a1))+
                     rl.expectedValue(rl.getReward(rl.a2))+
                     rl.expectedValue(rl.getReward(rl.a3))+
                     rl.expectedValue(rl.getReward(rl.a4));
         System.out.println("Expected value: "+expVal);
+        for(int i=0;i<4;i++){
+            randExpVal += rl.expectedValue(rl.getReward(rl.chooseAction()));
+        }
+        System.out.println("Expected value if choosen randomly: "+randExpVal);
+
         System.out.println("--------------------------------------------------");
         System.out.println("Task 2:");
         double allRew = 0.0;
