@@ -122,7 +122,7 @@ public class RobotLearning1 {
         System.out.println("--------------------------------------------------");
         System.out.println("Task 3:");
         rl.Q(rl.chooseAction());
-        for(int i=0;i<999;i++){
+        for(int i=0;i<1001;i++){
             
             double r = Math.random();
             if(r<0.2)
