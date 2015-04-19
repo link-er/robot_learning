@@ -31,43 +31,24 @@ public class RobotLearning1 {
         }
     }
 
-    private Arm a1, a2, a3, a4;
+    private Arm[] a;
     private Random r = new Random();
     public RobotLearning1(){
-        a1 = new Arm(2,3);
-        a2 = new Arm(-2,1);
-        a3 = new Arm(1,3);
-        a4 = new Arm(0,5);
+        a = new Arm[4];
+        a[0] = new Arm(2,3);
+        a[1] = new Arm(-2,1);
+        a[2] = new Arm(1,3);
+        a[3] = new Arm(0,5);
     }
 
     public Arm chooseAction(){
         int act = r.nextInt(4);
-        Arm action = null;
-        switch(act){
-        case 0:
-            action = a1;
-            break;
-        case 1:
-            action = a2;
-            break;
-        case 2:
-            action = a3;
-            break;
-        case 3:
-            action = a4;
-            break;
-        default:
-            action = a1;
-            break;
-        }
-        return action;
+        return a[act];
     }
 
     public void reset(double initial) {
-        a1.reset(initial);
-        a2.reset(initial);
-        a3.reset(initial);
-        a4.reset(initial);
+        for(int i=0;i<4;i++)
+            a[i].reset(initial);
     }
 
     public double getReward(Arm a){
@@ -91,19 +72,19 @@ public class RobotLearning1 {
     }
 
     public Arm maxQ(){
-        if(a1.q >= a2.q && a1.q >= a3.q && a1.q >= a4.q) {
-            return a1;
+        if(a[0].q >= a[1].q && a[0].q >= a[2].q && a[0].q >= a[3].q) {
+            return a[0];
         }
-        if(a2.q >= a1.q && a2.q >= a3.q && a2.q >= a4.q) {
-            return a2;
+        if(a[1].q >= a[0].q && a[1].q >= a[2].q && a[1].q >= a[3].q) {
+            return a[1];
         }
-        if(a3.q >= a1.q && a3.q >= a2.q && a3.q >= a4.q) {
-            return a3;
+        if(a[2].q >= a[0].q && a[2].q >= a[1].q && a[2].q >= a[3].q) {
+            return a[2];
         }
-        if(a4.q >= a1.q && a4.q >= a2.q && a4.q >= a3.q) {
-            return a3;
+        if(a[3].q >= a[0].q && a[3].q >= a[1].q && a[3].q >= a[2].q) {
+            return a[3];
         }
-        return a1;
+        return a[0];
     }
 
     public int getCount(Arm a){
@@ -111,7 +92,7 @@ public class RobotLearning1 {
     }
 
     public double getSumReward(){
-        return a1.sumReward + a2.sumReward + a3.sumReward + a4.sumReward;
+        return a[0].sumReward + a[1].sumReward + a[2].sumReward + a[3].sumReward;
     }
 
     public void makeCycle(boolean withLearningStep, double initial) {
@@ -138,10 +119,8 @@ public class RobotLearning1 {
             if(i%100 == 0) {
                 percent = i;
                 System.out.println("Step "+i);
-                System.out.format("a1: %.4f%%%n", getCount(a1)*100/percent);
-                System.out.format("a2: %.4f%%%n", getCount(a2)*100/percent);
-                System.out.format("a3: %.4f%%%n", getCount(a3)*100/percent);
-                System.out.format("a4: %.4f%%%n", getCount(a4)*100/percent);
+                for(int j=0;j<4;j++)
+                    System.out.format("a%d: %.4f%%%n",j+1, getCount(a[j])*100/percent);
                 System.out.format("resulting average reward: %.4f%n", getSumReward()/i);
             }
         }
@@ -154,8 +133,8 @@ public class RobotLearning1 {
         System.out.println("Task 1:");
         double expVal = 0.0;
         double randExpVal = 0.0;
-        expVal = rl.getReward(rl.a1) + rl.getReward(rl.a2) +
-                    rl.getReward(rl.a3) + rl.getReward(rl.a4);
+        expVal = rl.getReward(rl.a[0]) + rl.getReward(rl.a[1]) +
+                    rl.getReward(rl.a[2]) + rl.getReward(rl.a[3]);
         System.out.format("Expected value: %.4f%n", 0.25*expVal);
         for(int i=0; i<4; i++){
             randExpVal += rl.getReward(rl.chooseAction());
