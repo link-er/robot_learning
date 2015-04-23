@@ -103,7 +103,7 @@ public class RobotLearning1 {
         return a[0].sumReward + a[1].sumReward + a[2].sumReward + a[3].sumReward;
     }
 
-    public void makeCycle(boolean withLearningStep, double initial) {
+    public void makeCycle(boolean greedy, boolean withLearningStep, double initial) {
         reset(initial);
         Random epsilon = new Random();
         double percent;
@@ -116,7 +116,7 @@ public class RobotLearning1 {
                 continue;
             }
 
-            if(epsilon.nextDouble() < EPSILON)
+            if(epsilon.nextDouble() < EPSILON && !greedy)
                 if (withLearningStep)
                     Q(chooseAction(), STEP);
                 else
@@ -154,15 +154,15 @@ public class RobotLearning1 {
         System.out.println("--------------------------------------------------");
 
         System.out.println("Task 3:");
-        rl.makeCycle(false, 0);
+        rl.makeCycle(false, false, 0);
         System.out.println("--------------------------------------------------");
 
         System.out.println("Task 4:");
-        rl.makeCycle(true, 0);
+        rl.makeCycle(false, true, 0);
         System.out.println("--------------------------------------------------");
 
         System.out.println("Task 5:");
-        rl.makeCycle(true, 5);
+        rl.makeCycle(true, true, 5);
     }
 }
 
