@@ -9,14 +9,16 @@ public class CA {
     static int BORDER_SIZE = 2;
     static int BORDER_VALUE = 0;
 
-    private int[] grid, arr1, rule;
+    private int[] grid, rule;
+    private int radius;
     public int[] getGrid() {
         return grid;
     }
 
-    public CA(String startingCondition) {
-        arr1 = new int[84];
+    public CA(String startingCondition, int radius, int ruleNumber) {
+        this.radius = radius;
         setInitial(startingCondition);
+        setRule(ruleNumber);
     }
 
     //setting random values in the beginning or one seed cell
@@ -25,7 +27,8 @@ public class CA {
         switch(startingCondition) {
         case "R": {
             Random rand = new Random();
-            for(int i=0; i<GRID_SIZE; i++)
+            //do not set borders
+            for(int i=BORDER_SIZE; i<GRID_SIZE - BORDER_SIZE; i++)
                 if(rand.nextDouble() < 0.5)
                     grid[i] = 0;
                 else
@@ -49,33 +52,34 @@ public class CA {
         System.out.println();
     }
 
-    public void setRule(int radius, int ruleNumber) {
+    private void setRule(int ruleNumber) {
         //initialize rule
         int ruleLength = (int) Math.pow(2, 2*radius+1);
         rule = new int[ruleLength];
         //get binary values of rule
         String[] tmp = Integer.toBinaryString(ruleNumber).split("");
-        for (int i = 0; i < tmp.length; i++)
-            rule[ruleLength - tmp.length + i] = Integer.parseInt(tmp[i]);
-        for(int i=0; i<rule.length/2; i++){
-            int btmp = rule[ruleLength - i-1];
-            rule[ruleLength - i-1] = rule[i];
-            rule[i]=btmp;
+        int j = 0;
+        //need to inverse binary number
+        //in order to get on 0 index of rule value for all-unset and on last index - all-set
+        //all uncovered just zeroes
+        for (int i = tmp.length - 1; i >= 0; i--) {
+            rule[j] = Integer.parseInt(tmp[i]);
+            j++;
         }
     }
 
-    public int[] applyRule() {
-        for (int i = 2; i < 82; i++) {
-            int sum = 0;
-            for (int j = 2; j >= 0; j--)
-                sum += (int) (Math.pow(2, j)) * grid[i + 1 - j];
-            arr1[i]=rule[sum];
-
+    public void applyRule() {
+        int currentRuleIndex;
+        int[] temp = new int[GRID_SIZE];
+        for (int i = BORDER_SIZE; i < GRID_SIZE - BORDER_SIZE; i++) {
+            //transfer currently considered neighborhood to the index of applying rule
+            currentRuleIndex = 0;
+            for (int j = 0; j < 2*radius + 1; j++)
+                currentRuleIndex += (int) (Math.pow(2, j)) * grid[i + radius - j];
+            temp[i] = rule[currentRuleIndex];
         }
-
-       for(int i=0;i<84;i++)
-           grid[i]=arr1[i];
-       return arr1;
+        for(int i=0; i<GRID_SIZE; i++)
+            grid[i] = temp[i];
     }
 
     public static void main(String[] args) {
@@ -112,11 +116,10 @@ public class CA {
         in.close();
 
         //main action
-        CA ca = new CA(startingCondition);
-        ca.setRule(r, rule);
-        ca.printOut(ca.getGrid());
+        CA ca = new CA(startingCondition, r, rule);
         while(true) {
-            ca.printOut(ca.applyRule());
+            ca.printOut(ca.getGrid());
+            ca.applyRule();
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
