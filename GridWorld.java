@@ -2,7 +2,10 @@ import java.util.Arrays;
 
 
 public class GridWorld {
-    public static enum Move {LEFT, UP, RIGHT, DOWN};
+    public static enum Move {LEFT, UP, RIGHT, DOWN/*, DIAG_LEFT_UP, DIAG_LEFT_DOWN, DIAG_RIGHT_UP, DIAG_RIGHT_DOWN*/};
+    public static enum Move2 {LEFT, UP, RIGHT, DOWN, DIAG_LEFT_UP, DIAG_LEFT_DOWN, DIAG_RIGHT_UP, DIAG_RIGHT_DOWN};
+    
+    
 
     private class Grid {
         private int[][] rewardGrid;
@@ -31,9 +34,12 @@ public class GridWorld {
 
     private class Policy {
         private double[][][] moveProbabilities;
+        
 
         public Policy() {
             moveProbabilities = new double[9][9][4];
+           
+            
         }
         public Policy(double leftProbability, double upProbability,
                 double rightProbability, double downProbability) {
@@ -90,6 +96,8 @@ public class GridWorld {
             if(moveProbabilities[i][j][Move.DOWN.ordinal()] == 1) return Move.DOWN;
             return null;
         }
+        
+        
     }
 
     private Grid grid;
@@ -122,7 +130,31 @@ public class GridWorld {
     }
 
     private int[] move(int i, int j, Move a) {
-        int[] result = new int[2];
+        int[] result = {i,j};
+        
+        switch(a) {
+        case LEFT: {
+            if(j!=0)result[1] = j-1;
+            return result;
+        }
+        case UP: {
+            if(i!=0)result[0] = i-1;
+            return result;
+        }
+        case RIGHT: {
+            if(j!=8)result[1] = j+1;
+            return result;
+        }
+        case DOWN: {
+            if(i!=8)result[0] = i+1;
+            return result;
+        }
+        }
+        return result;
+    }
+    
+    private int[] move2(int i, int j, Move2 a) {
+        int[] result = {i,j};
         switch(a) {
         case LEFT: {
             if(j==0)
@@ -156,9 +188,56 @@ public class GridWorld {
             result[1] = j;
             return result;
         }
+        case DIAG_LEFT_DOWN: {
+            if(j==0)
+                result[1] = 0;
+            else{
+                result[1] = j-1;
+            if(i==8)
+                result[0] = 8;
+            else
+                result[0] = i+1;}
+            
+            return result;
+        }
+        case DIAG_LEFT_UP: {
+            if(j==0)
+                result[1] = 0;
+            else {
+                result[1] = j-1;
+            if(i==0)
+                result[0] = 0;
+            else
+                result[0] = i-1;}
+            return result;
+        }
+        case DIAG_RIGHT_DOWN: {
+            if(j==8)
+                result[1] = 8;
+            else 
+                {result[1] = j+1;
+            if(i==8)
+                result[0] = 8;
+            else
+                result[0] = i+1;}
+           
+            return result;
+        }
+        case DIAG_RIGHT_UP: {
+            if(j==8)
+                result[1] = 8;
+            else {
+                result[1] = j+1;
+            if(i==0)
+                result[0] = 0;
+            else
+                result[0] = i-1;}
+            return result;
+        }
         }
         return result;
     }
+
 
     public double getStateExpectedValue(int i, int j) {
         if(i==2 && j==0)
@@ -278,6 +357,79 @@ public class GridWorld {
         }
         System.out.println();
     }
+    
+    /*---------------------------------------------------------*/
+    public double getStateMaximumOptimalValue(int i, int j) {
+        if(i==2 && j==0)
+            return 100;
+        if(reward(i, j)==-20)
+            return -20;
+
+        double stateActionValue;
+        int[] nextState;
+        int[] nextStateD1;
+        int[] nextStateD2;
+        int reward;
+        double maximumValue = -Double.MAX_VALUE;
+        Move2 diagAct1, diagAct2;
+        
+        for(Move a : Move.values()) {
+            
+           switch(a){
+           case LEFT:{
+               diagAct1 = Move2.DIAG_LEFT_DOWN;
+               diagAct2 = Move2.DIAG_LEFT_UP;
+               break;
+               }
+           case RIGHT:{
+               diagAct1 = Move2.DIAG_RIGHT_DOWN;
+               diagAct2 = Move2.DIAG_RIGHT_UP;
+               break;
+               }
+           case DOWN:{
+               diagAct1 = Move2.DIAG_LEFT_DOWN;
+               diagAct2 = Move2.DIAG_RIGHT_DOWN;
+               break;
+               }
+           case UP:{
+               diagAct1 = Move2.DIAG_RIGHT_UP;
+               diagAct2 = Move2.DIAG_LEFT_UP;
+               break;
+               }
+           default:{
+               diagAct1 = null;
+               diagAct2 = null;
+           }
+               
+           }
+            nextState = move(i, j, a);
+            nextStateD1 = move2(i, j, diagAct1);
+            nextStateD2 = move2(i, j, diagAct2);
+           
+            stateActionValue = 0.6*(conditionalReward(nextState, i, j) + 0.9 * value(nextState[0], nextState[1]))
+                    +0.2*(conditionalReward(nextStateD1, i, j) + 0.9 * value(nextStateD1[0], nextStateD1[1]))
+                    +0.2*(conditionalReward(nextStateD2, i, j) + 0.9 * value(nextStateD2[0], nextStateD2[1]));
+            
+            if(stateActionValue > maximumValue)
+                maximumValue = stateActionValue;
+        }
+        return maximumValue;
+    }
+    
+    private int conditionalReward( int[] nextState, int i, int j){
+        int reward = 0;
+        if(nextState[0]==i && nextState[1]==j)
+            reward = -10;
+        else {
+            reward = reward(nextState[0], nextState[1]);
+            if(reward == -20) {
+                nextState[0] = i;
+                nextState[1] = j;
+            }
+        }
+        return reward;
+    }
+    /*-----------------------------------------------------------*/
 
     public static void main(String[] Args) {
         double initValue = 0.0;
@@ -333,7 +485,7 @@ public class GridWorld {
         Policy optimal = gw1.computePolicy();
         optimal.output();
 
-        GridWorld gw2 = new GridWorld(initValue, optimal);
+        GridWorld gw2 = new GridWorld(initValue, leftProbability, upProbability, rightProbability, downProbability);
         //TODO
         //make policy values to non-determenistic
         //0.6 is what now 1
@@ -343,7 +495,7 @@ public class GridWorld {
             maximum = 0;
             for (int i = 0; i < 9; i++)
                 for (int j = 0; j < 9; j++) {
-                    tempGrid[i][j] = gw2.getStateMaximumValue(i, j);
+                    tempGrid[i][j] = gw2.getStateMaximumOptimalValue(i, j);
                     delta = Math.abs(tempGrid[i][j] - gw2.value(i, j));
                     if (delta > maximum)
                         maximum = delta;
