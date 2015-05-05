@@ -19,25 +19,11 @@ public class GridWorld {
             for (int i = 0; i < 9; i++)
                 for (int j = 0; j < 9; j++)
                     rewardGrid[i][j] = -1;
-            rewardGrid[1][5] = -20;
-            rewardGrid[2][0] = 100;
-            rewardGrid[2][1] = -20;
-            rewardGrid[2][2] = -20;
-            rewardGrid[2][3] = -20;
-            rewardGrid[2][5] = -20;
-            rewardGrid[2][6] = -20;
-            rewardGrid[3][7] = -20;
-            rewardGrid[4][2] = -20;
-            rewardGrid[4][3] = -20;
-            rewardGrid[4][4] = -20;
-            rewardGrid[4][5] = -20;
-            rewardGrid[4][7] = -20;
-            rewardGrid[5][7] = -20;
-            rewardGrid[6][1] = -20;
-            rewardGrid[6][2] = -20;
-            rewardGrid[6][3] = -20;
-            rewardGrid[6][5] = -20;
-            rewardGrid[6][6] = -20;
+            rewardGrid[1][5] = -20; rewardGrid[2][0] = 100; rewardGrid[2][1] = -20; rewardGrid[2][2] = -20;
+            rewardGrid[2][3] = -20; rewardGrid[2][5] = -20; rewardGrid[2][6] = -20; rewardGrid[3][7] = -20;
+            rewardGrid[4][2] = -20; rewardGrid[4][3] = -20; rewardGrid[4][4] = -20; rewardGrid[4][5] = -20;
+            rewardGrid[4][7] = -20; rewardGrid[5][7] = -20; rewardGrid[6][1] = -20; rewardGrid[6][2] = -20;
+            rewardGrid[6][3] = -20; rewardGrid[6][5] = -20; rewardGrid[6][6] = -20;
             for (int i = 7; i < 9; i++)
                 for (int j = 1; j <= 6; j++)
                     rewardGrid[i][j] = 5;
@@ -53,7 +39,6 @@ public class GridWorld {
 
         public Policy() {
             moveProbabilities = new double[9][9][4];
-
         }
 
         public Policy(double leftProbability, double upProbability,
@@ -153,7 +138,6 @@ public class GridWorld {
 
     private int[] move(int i, int j, Move a) {
         int[] result = { i, j };
-
         switch (a) {
         case LEFT: {
             if (j != 0)
@@ -183,51 +167,33 @@ public class GridWorld {
         int[] result = { i, j };
         switch (a) {
         case DIAG_LEFT_DOWN: {
-            if (j == 0)
-                result[1] = 0;
-            else {
+            if (j != 0) {
                 result[1] = j - 1;
-                if (i == 8)
-                    result[0] = 8;
-                else
+                if (i != 8)
                     result[0] = i + 1;
             }
-
             return result;
         }
         case DIAG_LEFT_UP: {
-            if (j == 0)
-                result[1] = 0;
-            else {
+            if (j != 0) {
                 result[1] = j - 1;
-                if (i == 0)
-                    result[0] = 0;
-                else
+                if (i != 0)
                     result[0] = i - 1;
             }
             return result;
         }
         case DIAG_RIGHT_DOWN: {
-            if (j == 8)
-                result[1] = 8;
-            else {
+            if (j != 8) {
                 result[1] = j + 1;
-                if (i == 8)
-                    result[0] = 8;
-                else
+                if (i != 8)
                     result[0] = i + 1;
             }
-
             return result;
         }
         case DIAG_RIGHT_UP: {
-            if (j == 8)
-                result[1] = 8;
-            else {
+            if (j != 8) {
                 result[1] = j + 1;
-                if (i == 0)
-                    result[0] = 0;
-                else
+                if (i != 0)
                     result[0] = i - 1;
             }
             return result;
@@ -247,15 +213,8 @@ public class GridWorld {
         int reward;
         for (Move a : Move.values()) {
             nextState = move(i, j, a);
-            if (nextState[0] == i && nextState[1] == j)
-                reward = -10;
-            else {
-                reward = reward(nextState[0], nextState[1]);
-                if (reward == -20) {
-                    nextState[0] = i;
-                    nextState[1] = j;
-                }
-            }
+            reward = conditionalReward(nextState, i, j);
+            if (reward == -20) { nextState[0] = i; nextState[1] = j; }
             stateValue += policyMove(i, j, a)
                     * (reward + 0.9 * value(nextState[0], nextState[1]));
         }
@@ -274,20 +233,84 @@ public class GridWorld {
         double maximumValue = -Double.MAX_VALUE;
         for (Move a : Move.values()) {
             nextState = move(i, j, a);
-            if (nextState[0] == i && nextState[1] == j)
-                reward = -10;
-            else {
-                reward = reward(nextState[0], nextState[1]);
-                if (reward == -20) {
-                    nextState[0] = i;
-                    nextState[1] = j;
-                }
-            }
+            reward = conditionalReward(nextState, i, j);
+            if (reward == -20) { nextState[0] = i; nextState[1] = j; }
+
             stateActionValue = reward + 0.9 * value(nextState[0], nextState[1]);
             if (stateActionValue > maximumValue)
                 maximumValue = stateActionValue;
         }
         return maximumValue;
+    }
+
+    public double getStateMaximumValueNonDeterm(int i, int j) {
+        if (i == 2 && j == 0)
+            return 100;
+        if (reward(i, j) == -20)
+            return -20;
+
+        double stateActionValue;
+        int[] nextState, nextStateD1, nextStateD2;
+        int reward, rewardDiag1, rewardDiag2;
+        double maximumValue = -Double.MAX_VALUE;
+        DiagMove diagAct1, diagAct2;
+
+        for (Move a : Move.values()) {
+            switch (a) {
+            case LEFT: {
+                diagAct1 = DiagMove.DIAG_LEFT_DOWN;
+                diagAct2 = DiagMove.DIAG_LEFT_UP;
+                break;
+            }
+            case RIGHT: {
+                diagAct1 = DiagMove.DIAG_RIGHT_DOWN;
+                diagAct2 = DiagMove.DIAG_RIGHT_UP;
+                break;
+            }
+            case DOWN: {
+                diagAct1 = DiagMove.DIAG_LEFT_DOWN;
+                diagAct2 = DiagMove.DIAG_RIGHT_DOWN;
+                break;
+            }
+            case UP: {
+                diagAct1 = DiagMove.DIAG_RIGHT_UP;
+                diagAct2 = DiagMove.DIAG_LEFT_UP;
+                break;
+            }
+            default: {
+                diagAct1 = null;
+                diagAct2 = null;
+            }
+            }
+            nextState = move(i, j, a);
+            nextStateD1 = diagMove(i, j, diagAct1);
+            nextStateD2 = diagMove(i, j, diagAct2);
+
+            reward = conditionalReward(nextState, i, j);
+            rewardDiag1 = conditionalReward(nextStateD1, i, j);
+            rewardDiag2 = conditionalReward(nextStateD2, i, j);
+
+            if (reward == -20) { nextState[0] = i; nextState[1] = j; }
+            if (rewardDiag1 == -20) { nextStateD1[0] = i; nextStateD1[1] = j; }
+            if (rewardDiag2 == -20) { nextStateD2[0] = i; nextStateD2[1] = j; }
+
+            stateActionValue = 0.6 * (reward + 0.9 * value(nextState[0], nextState[1]))
+                    + 0.2 * (rewardDiag1 + 0.9 * value(nextStateD1[0], nextStateD1[1]))
+                    + 0.2 * (rewardDiag2 + 0.9 * value(nextStateD2[0], nextStateD2[1]));
+
+            if (stateActionValue > maximumValue)
+                maximumValue = stateActionValue;
+        }
+        return maximumValue;
+    }
+
+    private int conditionalReward(int[] nextState, int i, int j) {
+        int reward = 0;
+        if (nextState[0] == i && nextState[1] == j)
+            reward = -10;
+        else
+            reward = reward(nextState[0], nextState[1]);
+        return reward;
     }
 
     public Policy computePolicy() {
@@ -356,82 +379,6 @@ public class GridWorld {
         System.out.println();
     }
 
-    public double getStateMaximumValueNonDeterm(int i, int j) {
-        if (i == 2 && j == 0)
-            return 100;
-        if (reward(i, j) == -20)
-            return -20;
-
-        double stateActionValue;
-        int[] nextState;
-        int[] nextStateD1;
-        int[] nextStateD2;
-        double maximumValue = -Double.MAX_VALUE;
-        DiagMove diagAct1, diagAct2;
-
-        for (Move a : Move.values()) {
-
-            switch (a) {
-            case LEFT: {
-                diagAct1 = DiagMove.DIAG_LEFT_DOWN;
-                diagAct2 = DiagMove.DIAG_LEFT_UP;
-                break;
-            }
-            case RIGHT: {
-                diagAct1 = DiagMove.DIAG_RIGHT_DOWN;
-                diagAct2 = DiagMove.DIAG_RIGHT_UP;
-                break;
-            }
-            case DOWN: {
-                diagAct1 = DiagMove.DIAG_LEFT_DOWN;
-                diagAct2 = DiagMove.DIAG_RIGHT_DOWN;
-                break;
-            }
-            case UP: {
-                diagAct1 = DiagMove.DIAG_RIGHT_UP;
-                diagAct2 = DiagMove.DIAG_LEFT_UP;
-                break;
-            }
-            default: {
-                diagAct1 = null;
-                diagAct2 = null;
-            }
-
-            }
-            nextState = move(i, j, a);
-            nextStateD1 = diagMove(i, j, diagAct1);
-            nextStateD2 = diagMove(i, j, diagAct2);
-
-            stateActionValue = 0.6
-                    * (conditionalReward(nextState, i, j) + 0.9 * value(
-                            nextState[0], nextState[1]))
-                    + 0.2
-                    * (conditionalReward(nextStateD1, i, j) + 0.9 * value(
-                            nextStateD1[0], nextStateD1[1]))
-                    + 0.2
-                    * (conditionalReward(nextStateD2, i, j) + 0.9 * value(
-                            nextStateD2[0], nextStateD2[1]));
-
-            if (stateActionValue > maximumValue)
-                maximumValue = stateActionValue;
-        }
-        return maximumValue;
-    }
-
-    private int conditionalReward(int[] nextState, int i, int j) {
-        int reward = 0;
-        if (nextState[0] == i && nextState[1] == j)
-            reward = -10;
-        else {
-            reward = reward(nextState[0], nextState[1]);
-            if (reward == -20) {
-                nextState[0] = i;
-                nextState[1] = j;
-            }
-        }
-        return reward;
-    }
-
     public static void main(String[] Args) {
         double initValue = 0.0;
         double leftProbability = 0.625;
@@ -444,7 +391,6 @@ public class GridWorld {
         double[][] tempGrid = new double[9][9];
         double maximum = 0.0;
         double delta;
-        // gw.printValues();
         do {
             maximum = 0;
             for (int i = 0; i < 9; i++)
@@ -486,7 +432,7 @@ public class GridWorld {
                     if (delta > maximum)
                         maximum = delta;
                 }
-
+            gw2.setValues(tempGrid);
         } while (maximum > epsilon);
         gw2.printValues();
         Policy optimalNonDetermenistic = gw2.computePolicy();
