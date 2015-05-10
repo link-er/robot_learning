@@ -1,3 +1,8 @@
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Random;
 import java.util.Scanner;
 
 public class ForestFire {
@@ -5,7 +10,7 @@ public class ForestFire {
     public static int HEIGHT = 82;
     public static final char ASH = '_';
     public static final char FIRE = '#';
-    public static final char TREE = '~';
+    public static final char TREE = 'T';
 
     private char[][] grid;
     private double spontGrowth, spontFire, inducedGrowth;
@@ -31,14 +36,38 @@ public class ForestFire {
 
     public void timeStep(){
         char[][] gridTemp = new char[WIDTH][HEIGHT];
+        char[] currentNeighb;
+        Random rand = new Random();
+        double generated;
+        boolean set;
         for(int i = 0; i < WIDTH; i++)
             for(int j = 0; j < HEIGHT; j++){
+                set = false;
                 switch(grid[i][j]) {
                 case ASH: {
-                    //TODO check neighbors(i, j) - if any TREE
+                    //check neighbors(i, j) - if any TREE
                     //check by probability of induced growth will be a tree here
                     //if no TREE in n\b - check by probability of spontaneous growth
                     //if a tree will be here
+                    currentNeighb = neighbors(i, j);
+                    for(char neighbor : currentNeighb) {
+                        if(neighbor==TREE) {
+                            generated = rand.nextDouble();
+                            if(generated < inducedGrowth) {
+                                gridTemp[i][j] = TREE;
+                                set = true;
+                                break;
+                            }
+                        }
+                    }
+                    if(!set) {
+                        generated = rand.nextDouble();
+                        if(generated < spontGrowth) {
+                            gridTemp[i][j] = TREE;
+                            set = true;
+                        }
+                    }
+                    if(!set) gridTemp[i][j] = ASH;
                     break;
                 }
                 case FIRE: {
@@ -46,10 +75,26 @@ public class ForestFire {
                     break;
                 }
                 case TREE: {
-                    //TODO check neighbors(i, j) - if any FIRE
+                    //check neighbors(i, j) - if any FIRE
                     //set on fire
                     //if no FIRE in n\b - check by probability of spontaneous fire
                     //if fire will be here
+                    currentNeighb = neighbors(i, j);
+                    for(char neighbor : currentNeighb) {
+                        if(neighbor==FIRE) {
+                            gridTemp[i][j] = FIRE;
+                            set = true;
+                            break;
+                        }
+                    }
+                    if(!set) {
+                        generated = rand.nextDouble();
+                        if(generated < spontFire) {
+                            gridTemp[i][j] = FIRE;
+                            set = true;
+                        }
+                    }
+                    if(!set) gridTemp[i][j] = TREE;
                     break;
                 }
                 default: break;
@@ -82,16 +127,26 @@ public class ForestFire {
 
     private char[] neighbors(int i, int j) {
         char[] result = new char[4];
-        //TODO check if % returns needed result
-        result[0] = grid[i][(j-1)%HEIGHT];
-        result[0] = grid[(i-1)%WIDTH][j];
-        result[0] = grid[i][(j+1)%HEIGHT];
-        result[0] = grid[(i+1)%WIDTH][j];
+
+        int loopedIndex = (j-1)%HEIGHT;
+        if (loopedIndex < 0) loopedIndex += HEIGHT;
+        result[0] = grid[i][loopedIndex];
+
+        loopedIndex = (i-1)%WIDTH;
+        if (loopedIndex < 0) loopedIndex += WIDTH;
+        result[1] = grid[loopedIndex][j];
+
+        result[2] = grid[i][(j+1)%HEIGHT];
+        result[3] = grid[(i+1)%WIDTH][j];
         return result;
     }
 
-    public void statesToFile(){
-        //TODO
+    public void statesToFile() {
+        try(PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter("states.txt", true)))) {
+            out.println(countAshes + " " + countTrees + " " + countFire);
+        }catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void printOut(){
@@ -131,8 +186,6 @@ public class ForestFire {
         }
 
         in.close();
-        //TODO open file
-        //modify statesToFire arg list to take file descriptor
 
         ForestFire ff = new ForestFire(p, f, q);
         while(true){
@@ -147,7 +200,6 @@ public class ForestFire {
                 e.printStackTrace();
             }
         }
-
     }
 
 
