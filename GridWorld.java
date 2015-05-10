@@ -47,8 +47,8 @@ public class GridWorld {
                 nextState = deviationLeft(currentState[0], currentState[1], nextMove);
             else
                 nextState = deviationRight(currentState[0], currentState[1], nextMove);
-            System.out.println(Arrays.toString(currentState));
-            Integer[] episodeValue = {currentState[0],currentState[1],rewardGrid[currentState[0]][currentState[1]]};
+            //System.out.println(Arrays.toString(currentState));
+            Integer[] episodeValue = {currentState[0],currentState[1],rewardGrid[nextState[0]][nextState[1]]};
             list.add(episodeValue);
             currentState[0] = nextState[0];
             currentState[1] = nextState[1];
@@ -63,7 +63,9 @@ public class GridWorld {
         
             double nextValue = 0.0;
             for(Integer[] elem:reverseList){
-                valueGrid[elem[0]][elem[1]] += alpha*(elem[2]+gamma*nextValue - elem[2]);
+                //System.out.println(elem[2]);
+                valueGrid[elem[0]][elem[1]] += alpha*(elem[2]+gamma*nextValue - valueGrid[elem[0]][elem[1]]);
+                //System.out.println(valueGrid[elem[0]][elem[1]]);
                 nextValue = valueGrid[elem[0]][elem[1]];
             }
         
@@ -74,7 +76,7 @@ public class GridWorld {
         {
             System.out.println();
             for(int j = 0; j < WIDTH; j++){
-                System.out.print(valueGrid[i][j]+" ");
+                System.out.printf("%8.2f ",valueGrid[i][j]);
             }
     }
     }
@@ -222,7 +224,8 @@ public class GridWorld {
     public static void main(String[] args){
         double[] prob = {0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.25, 0.25};
         GridWorld gw = new GridWorld(prob);
-        gw.GenerateEpisode();
+        //gw.GenerateEpisode();
+        for(int i = 0; i<1000;i++)
         gw.tdValue(0.1, 0.1);
         gw.printOutValueGrid();
      }
