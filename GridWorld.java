@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Random;
 
 
@@ -54,7 +55,29 @@ public class GridWorld {
         } while(!terminateState(nextState[0], nextState[1]));
         return list;
      }
-
+    
+    public void tdValue(double alpha, double gamma){
+        ArrayList<Integer[]> reverseList = new ArrayList<Integer[]>();
+        reverseList = GenerateEpisode();
+        Collections.reverse(reverseList);
+        
+            double nextValue = 0.0;
+            for(Integer[] elem:reverseList){
+                valueGrid[elem[0]][elem[1]] += alpha*(elem[2]+gamma*nextValue - elem[2]);
+                nextValue = valueGrid[elem[0]][elem[1]];
+            }
+        
+    }
+    
+    public void printOutValueGrid(){
+        for(int i = 0; i < HEIGHT; i++)
+        {
+            System.out.println();
+            for(int j = 0; j < WIDTH; j++){
+                System.out.print(valueGrid[i][j]+" ");
+            }
+    }
+    }
     public boolean terminateState(int i, int j){
         if (rewardGrid[i][j] == -500 || rewardGrid[i][j] == 1000)
             return true;
@@ -200,5 +223,7 @@ public class GridWorld {
         double[] prob = {0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.25, 0.25};
         GridWorld gw = new GridWorld(prob);
         gw.GenerateEpisode();
+        gw.tdValue(0.1, 0.1);
+        gw.printOutValueGrid();
      }
 }
