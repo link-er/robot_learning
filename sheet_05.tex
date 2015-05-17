@@ -1,0 +1,43 @@
+\documentclass[english]{scrartcl}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{seqsplit}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\begin{document}
+\section*{Task 5.1, a}
+The learning approach described in the article uses deep learning in convolutional neural net for developing optimal $Q^{*}(s,a)$ action-value function for playing set of computer games in Atari 2600. Two key ideas were introduced for the learning: first one is using the pool of stored samples to take random and perform "replay" on them, second one is periodically updating target values, not always. For updating was used loss function $$L_{i}(\theta_{i})=E_{(s,a,r,s^{\prime})\approx U(D)}[(r+\gamma max_{a^{\prime}} Q(s^{\prime},a^{\prime};\theta_{i}^{-})-Q(s,a;\theta_{i}))^{2}]$$
+Here $\theta_{i}$ are the parameters (weights of the neural net) on the $i-th$ step, $\gamma$ is a discount factor (that was taken 0.99) for learning, $\theta_{i}^{-}$ the parameters that are used for obtaining target values on the $i-th$ step (they are updated every $C$ steps), $U(D)$ is a batch of experience drawn uniformly from stored experiences ( tuples $(s_{t},a_{t},r_{t},s_{t+1})$ ). The input for the convolutional neural net was $84\times84\times4$ image, preprocessed from the raw input from Atari 2600 and the output is a vector of $Q-values$ for each of the possible actions. For different games were set different sets of actions. Also, the rewards in the game were simplified to 1, 0 and -1, as the scaling was different in every game. For generating next action was used greedy policy, action is given to the framework Atari 2600 and next image and reward are returned. In general algorithm worked in the following sequence:
+\begin{enumerate}
+\item Make an action following greedy policy
+\item Get the reward and next state, save them to the pool
+\item Sample transitions from the pool and set the max value to calculate loss function
+\item Perform gradient descent step
+\item every C steps update weights for generating max Q values
+\end{enumerate}
+For testing the results also the greedy policy with $\epsilon = 0.05$ was used in order to minimise the possibility of overfitting.
+\section*{Task 5.1, b}
+States are the frames from Atari 2600, simplified slightly in order to reduce the memory and processing consumptions. So it is $84\times84\times4$ image of the current positions in the game. Action is a possible action in the specific game. They are set as initial values for the neural net, and represented by the output layer.
+\section*{Task 5.1, c}
+Parameters that are adjusted by learning are the weights of the convolutional neural net $\theta_{i}$. Number of the parameters can be counted from the description of the net and equal to .....
+\section*{Task 5.2}
+\cite{deep-learning}
+
+\begin{thebibliography}{9}
+
+\bibitem{deep-learning}
+  \emph{Deep Learning for Reinforcement Learning in Pacman},
+   http://tuprints.ulb.tu-darmstadt.de/id/eprint/3832,
+  Bachelor-Thesis von Aaron Hochländer aus Wiesbaden
+  Juli 2014.
+
+\end{thebibliography}
+
+\end{document}
