@@ -26,7 +26,7 @@ For testing the results also the greedy policy with $\epsilon = 0.05$ was used i
 \section*{Task 5.1, b}
 States are the frames from Atari 2600, simplified slightly in order to reduce the memory and processing consumptions. So it is $84\times84\times4$ image of the current positions in the game. Action is a possible action in the specific game. They are set as initial values for the neural net, and represented by the output layer.
 \section*{Task 5.1, c}
-Parameters that are adjusted by learning are the weights of the convolutional neural net $\theta_{i}$. Number of the parameters can be counted from the description of the net and equal to .....
+Parameters that are adjusted by learning are the weights $\theta_{i}$ of the convolutional neural net (Q-network) at $i-th$ iteration. Number of the parameters (weigths): $8\times 8\times 4 \times 16$ (1st hidden layer has 16 filters, and each contains 4 $8\times 8$ weight matrixes - as we have four, not one frame as input)+ $4\times 4\times 16 \times 32$(2nd hidden layer: 32 filters, each has 16 $4\times 4$ matrixes, for each input (filter from previous layer)+ $9\times 9\times 32\times 256$(3rd hidden, that consist of 256 units, each has 32 $9\times 9$ matrix - 32 - number of inputs from layer before)+$256\times 4$(output, 4 in case we have exactly 4 actions).
 \section*{Task 5.2}
 \cite{deep-learning}
 
@@ -35,7 +35,7 @@ Parameters that are adjusted by learning are the weights of the convolutional ne
 \bibitem{deep-learning}
   \emph{Deep Learning for Reinforcement Learning in Pacman},
    http://tuprints.ulb.tu-darmstadt.de/id/eprint/3832,
-  Bachelor-Thesis von Aaron Hochländer aus Wiesbaden
+  Bachelor-Thesis von Aaron Hochlï¿½nder aus Wiesbaden
   Juli 2014.
 
 \end{thebibliography}
