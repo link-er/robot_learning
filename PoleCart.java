@@ -59,7 +59,27 @@ public class PoleCart {
     }
     
     public boolean checkFail(){
-        return (Math.abs(state[0])>2.4 && Math.abs(state[2])>0.7);
+        return (Math.abs(state[0])>2.4 || Math.abs(state[2])>0.7);
+    }
+    public int episode(double k1, double k2, double k3, double k4){
+        int t = 0;
+        int reward = 0;
+        while (true) {
+            t++;
+            
+            calculateForce(k1, k2, k3, k4);
+            calculateState();
+            if (checkTarget())
+                reward += 0;
+            else if (checkFail()) {
+                reward += -2 * (1000 - t);
+                break;
+            } else
+                reward += -1;
+           
+
+        }
+        return reward;
     }
     public static void main(String[] args){
         int t = 0;
@@ -71,7 +91,7 @@ public class PoleCart {
         pc.printStateOut(t);
         
         PoleCart pc1 = new PoleCart();
-        double k1 = 0.01, k2 = -1.0, k3 = 0.02, k4 = -0.4;
+        double k1 = 0.01, k2 = -10.0, k3 = 0.102, k4 = -0.54;
         t = 0;
         int reward = 0;
         while (true) {
@@ -90,6 +110,33 @@ public class PoleCart {
 
         }
         System.out.println("Final reward: "+reward);
+        
+        
+        PoleCart pc2 = new PoleCart();
+        double[] gradient = new double[4];
+        System.out.println("last polecart");
+        for(int i = 0;i<4;i++){
+        t = 0;
+        reward = 0;
+        
+        double epsilon = 0.01;
+        double alpha = 0.001;
+        reward = pc2.episode(k1, k2, k3, k4);
+        System.out.println(k1+" "+k2+" "+k3+" "+k4);
+        gradient[0] = (pc2.episode(k1+epsilon, k2, k3, k4)-reward)/epsilon;
+        gradient[1] = (pc2.episode(k1, k2+epsilon, k3, k4)-reward)/epsilon;
+        gradient[2] = (pc2.episode(k1, k2, k3+epsilon, k4)-reward)/epsilon;
+        gradient[3] = (pc2.episode(k1, k2, k3, k4+epsilon)-reward)/epsilon;
+        k1 += alpha*gradient[0];
+        k2 += alpha*gradient[1];
+        k3 += alpha*gradient[2];
+        k4 += alpha*gradient[3];
+        System.out.println(k1+" "+k2+" "+k3+" "+k4);
+        }
+        
+            
+        
+        
     
 
     }}
