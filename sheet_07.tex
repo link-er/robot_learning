@@ -1,0 +1,20 @@
+\documentclass{article}
+\begin{document}
+\section*{Assignment 7}
+\begin{enumerate}
+\item 1)states:\\$x_1$=\{door1 is reward door, door2 is tiger door\}, 
+$x_2$=\{door1 is tiger door, door2 is reward door\};
+\\2)actions:\\
+$u_1$=\{open door1\}, 
+$u_2$=\{open door2\}, 
+$u_3$=\{listen\};
+\\3)cost(reward) function: \\
+$V_{1}(b)=\max\{200p_{1}-1000(1-p_{1}), -1000p_{1}+200(1-p_{1}), -50\}$
+\\4)
+\item "Listen listen open door1"\\
+$V_{1}(b)=-50-50+200p_{1}-1000(1-p_{1})$ -we choose $u_{1}$ anyway, independently of result of $u_{3}$, thus we just add doubled expected reward of doing $u_{3}$ and expected reward after doing $u_{1}$
+\item "Listen,
+then open the door for which you did not hear a noise"
+$V_{1}(b)=-50+200*0.8-1000*0.2=-90$ after committing $u_{3}$ we act according to the results of measurements, thus we will open the door with best measurement with probability 0.8.
+\end{enumerate}
+\end{document}
