@@ -50,11 +50,87 @@ $$=-50-50+(+200)*p_{1}+(-1000)*(1-p_{1})=-1100-800p_1$$ where $p_1$ is probabili
 
 \subsection*{Task 7.3}
 Cumulative reward (cost) of the sequence "Listen, then open the door for which you did not hear a noise" is:
-$$R=r(b,u_3)+=$$
-$$=-50+200*0.8-1000*0.2=-90$$
-\\Person acts accordingly to the measurement after committing $u_{3}$, thus he opens the door with best measurement with probability 0.8.
+$$R=r(b,u_3)+p_1*(0.8*200+0.2*(-1000)) + (1-p_1)*(0.8*200+0.2*(-1000))=$$
+$$=-50-40p_1-40+40p_1=-90$$
+\\Person acts accordingly to the measurement after committing $u_{3}$, thus we sum up cost of $u_3$ and expected reward depending on measurement - it will be the same for $x_1$ and $x_2$, with probability 0.8 the person opens door with reward and with probability 0.2 - with tiger.
 
 \subsection*{Task 7.4}
+For time horizon 1
+\[
+    V_1(b)=max\left\{
+                \begin{array}{ll}
+                  -1000*p_1+200*(1-p_1)\\
+                  200*p_1-1000*(1-p_1)\\
+                  -50 \ // \ may \ discard
+                \end{array}
+              \right.
+  \]
+ depicted 
+\\$p(z_1|x_1) = 0.2$ and $p(z_1|x_2)=0.8$. Getting measurement $z_1$ changes probabilities $p_1$ and $p_2=1-p_1$:
+$$p_1^\prime=\frac{0.2p_1}{p(z_1)}$$
+$$p_2^\prime = (1-p_1)^\prime = \frac{0.8(1-p_1)}{p(z_1)}$$
+$p(z_2|x_1) = 0.8$ and $p(z_2|x_2)=0.2$. Getting measurement $z_2$ changes probabilities $p_1$ and $p_2=1-p_1$:
+$$p_1^\prime=\frac{0.8p_1}{p(z_2)}$$
+$$p_2^\prime = (1-p_1)^\prime = \frac{0.2(1-p_1)}{p(z_2)}$$
+For expected belief after measurement:
+\[
+    V_1^\prime(b)=max\left\{
+                \begin{array}{ll}
+                  -1000*0.2*p_1+200*0.8*(1-p_1)\\
+                  200*0.2*p_1-1000*0.8*(1-p_1)
+                \end{array}
+              \right. + 
+  \]
+  \[
+              max\left\{
+                \begin{array}{ll}
+                  -1000*0.8*p_1+200*0.2*(1-p_1)\\
+                  200*0.8*p_1-1000*0.2*(1-p_1)
+                \end{array}
+              \right. = 
+  \]
+  \[
+     =max\left\{
+                \begin{array}{ll}
+                  -1000*p_1+200*(1-p_1)\\
+                  -40*p_1-40*(1-p_1)\\
+                  -760*p_1-760*(1-p_1) \ // \ may \ discard\\
+                  200*p_1-1000*(1-p_1)
+                \end{array}
+              \right.
+  \]
+$u3$ potentially changes state, so, knowing that $p(x_1|x_1,u_3)=0.8$, $p(x_1|x_2,u_3)=0.2$, $p(x_2|x_1,u_3)=0.2$ and $p(x_2|x_2,u_3)=0.8$, we get:
+$$p_1^\prime=0.8p_1+0.2(1-p_1)=0.6p_1+0.2$$
+$$p_2^\prime=(1-p_1)^\prime=0.2p_1+0.8(1-p_1)=0.8-0.6p_1$$
+Apply this substitution to $V^\prime(b)$:
+\[
+     V_1^\prime(b|u_3)=max\left\{
+                \begin{array}{ll}
+                  -1000*(0.6p_1+0.2)+200*(0.8-0.6p_1)\\
+                  -40*(0.6p_1+0.2)-40*(0.8-0.6p_1)\\
+                  200*(0.6p_1+0.2)-1000*(0.8-0.6p_1)
+                \end{array}
+              \right.=
+  \]
+  \[
+     =max\left\{
+                \begin{array}{ll}
+                  -760*p_1-40*(1-p_1)\\
+                  -40\\
+                  -40*p_1-760*(1-p_1)
+                \end{array}
+              \right.=
+  \]
+Finally, for each action we get:
+\[
+     V_2(b)=max\left\{
+                \begin{array}{ll}
+                  -1000*0.2*p_1+200*0.8*(1-p_1) \ // \ u_1\\
+                  200*0.2*p_1-1000*0.8*(1-p_1) \ // \ u_2\\
+                  -40 \ // \ u_3
+                \end{array}
+              \right.=
+  \]
 
 \end{document}
 
