@@ -1,203 +1,139 @@
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Random;
 import java.util.Scanner;
 
 public class EA {
-	private int p, m, l;
-	private int N = 46;
-	List<Point> data;
-	// private Point[] individual;
-	private Map<Double, Point[]> population;
-	private ArrayList<Point[]> parents;
+	private int p, m, l, n;
+	private Individual[] population;
+	private Individual[] parents;
 	private ArrayList<Point[]> offspring;
 
-	public EA(String filename, int p, int m, int l) {
+	public EA(int p, int n, int m, int l) {
+	    //population number
 		this.p = p;
+	    //genome length
+        this.n = n;
+		//parents number
 		this.m = m;
+		//offspring number
 		this.l = l;
-		data = new ArrayList<Point>();
-		parents = new ArrayList<Point[]>();
+		parents = new Individual[m];
 		offspring = new ArrayList<Point[]>();
-		population = new HashMap<Double, Point[]>();
-		try {
-			readData(filename);
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
+		population = new Individual[p];
+        initialiseIndividuals();
 	}
-	
-	public void initialiseIndividuals() {
-		System.out.println("Start init indiv");
-		Point[] individual = new Point[2 * N];
-		double rank;
+
+	private void initialiseIndividuals() {
+	    Individual individual;
 		for (int i = 0; i < p; i++) {
-			individual = generateIndividual();
-			System.out.println("individual:"+individual.toString());
-			rank = fitness(individual);
-			population.put(rank, individual);
+			individual = new Individual(n);
+			population[i] = individual;
 		}
-		System.out.println("end init indiv");
 	}
 
-	public Point[] generateIndividual() {
-		// TODO
-		// generate permutation for 1st part, than for second
-		// somehow assign N to 46, datarow length, not 150
-		Point[] individual = new Point[2 * N];
-		int[] permutation1 = new int[N];
-		int[] permutation2 = new int[N];
-		permutation1 = permutation(N);
-		permutation2 = permutation(N);
-		for (int i = 0; i < N; i++) {
-			for (Point point : data)
-				if (point.getValue() == permutation1[i])
-					individual[i] = point;
-
-			// System.out.print(permutation1[i]+" ");
-		}
-		// System.out.println();
-		for (int i = N; i < 2 * N; i++) {
-			for (Point point : data)
-				if (point.getValue() == permutation1[i - N])
-					individual[i] = point;
-		}
-
-		return individual;
+	public void fitnessEvaluation() {
+	    for(int i=0; i<p; i++)
+	        population[i].evaluateFitness();
 	}
 
 	public void externalSelection() {
-		double[] ranks = new double[p];
-		int i = 0;
-		for (Double key : population.keySet()) {
-			ranks[i] = key;
-			i++;
-		}
-		Arrays.sort(ranks);
-		for (i = 0; i < p - m; i++)
-			population.remove(ranks[i]);
+	    SortIndividualByFitness varSortIndividualByFitness = new SortIndividualByFitness();
+	    Arrays.sort(population, varSortIndividualByFitness);
+		for (int i = 0; i < l; i++)
+			population[i] = null;
 	}
 
 	public void parentSelection() {
-		for(Entry<Double, Point[]> i:population.entrySet())
-			parents.add(i.getValue());
+	    int j=0;
+		for(int i=0; i<p; i++) {
+		    if(population[i] != null) {
+		        parents[j] = population[i];
+		        j++;
+		    }
+		}
 	}
-	
-	 public void generateOffspring() {
-	        int rand1 = 0, rand2 = 0;
-	        while(offspring.size()<l){
-	        	rand1 = (int)(Math.random()*m);
-	        	rand2 = (int)(Math.random()*m);
-	        	parents.get(rand2);
-	        	crossover(parents.get(rand1),parents.get(rand2));
-	        } 
-	        System.out.println("Offspring size "+offspring.size());
+
+	public void inheritance() {
+	    int rand1 = 0, rand2 = 0;
+	    while(offspring.size() < l) {
+	        rand1 = (int)(Math.random()*m);
+	        rand2 = (int)(Math.random()*m);
+	        crossover(parents[rand1].getSequence(), parents[rand2].getSequence());
 	    }
-	 
-	 public void crossover(Point[] individual1, Point[] individual2){
-		 Point[] child1 = new Point[2*N];
-		 Point[] child2 = new Point[2*N];
-		 for(int i=0; i<N;i++){
-			 child1[i] = individual1[i];
-			 child1[N+i] = individual2[N+i];
-			 child2[i] = individual2[i];
-			 child2[N+i] = individual1[N+i];
-		 }
-		 System.out.println("child1 "+child1.toString());
-		 offspring.add(child1);
-		 offspring.add(child2);	 
-	 }
-	 
+	}
+
+	public void crossover(Point[] parent1, Point[] parent2){
+		Point[] child1 = new Point[2*n];
+		Point[] child2 = new Point[2*n];
+		for(int i=0; i<n; i++){
+			child1[i] = parent1[i];
+			child1[n+i] = parent2[n+i];
+			child2[i] = parent2[i];
+			child2[n+i] = parent1[n+i];
+		}
+		offspring.add(child1);
+		offspring.add(child2);
+	}
+
 	public void mutateOffspring() {
-		int rand = (int) (Math.random() * 10);// up to 10 offsprings undergo
-												// mutation
+		int rand = (int) (Math.random() * (l/4));// up to 25% of offsprings undergo mutation
 		int randIndex;
-		int[] str = new int[2 * N];
+		int[] str = new int[2 * n];
 		for (int i = 0; i < rand; i++) {
 			randIndex = (int) (Math.random() * l);
-			int index1 = (int) (Math.random() * 2 * N);
-			int index2 = (int) (Math.random() * 2 * N);
-			Point[] mutatedOffspring = new Point[2 * N];
+			int index1 = (int) (Math.random() * 2 * n);
+			int index2 = (int) (Math.random() * 2 * n);
+			Point[] mutatedOffspring = new Point[2 * n];
 			mutatedOffspring = offspring.remove(randIndex);
 			for (int j = 0; j < mutatedOffspring.length; j++)
 				str[j] = j + 1;
-			swap(str, index1, index2);
+			Helper.swap(str, index1, index2);
 			offspring.add(mutatedOffspring);
 		}
-		System.out.println(population.size());
-		System.out.println(offspring.size());
-		double rank = 0.0;
-		for(Point[] point:offspring){
-			rank = fitness(point);
-			population.put(rank, point);
-		}
-		System.out.println();
-		System.out.println(population.size());
-			
-	}
-	 
-
-
-
-	public int[] permutation(int size) {
-		int index1, index2;
-		int[] str = new int[N];
-		for (int i = 0; i < size; i++)
-			str[i] = i + 1;
-		int rand = (int) (Math.random() * 10);
-		for (int i = 0; i < rand; i++) {
-			index1 = (int) (Math.random() * 46);
-			index2 = (int) (Math.random() * 46);
-			swap(str, index1, index2);
-		}
-		return str;
 	}
 
-	public void swap(int[] str, int i, int j) {
-		int temp = 0;
-		temp = str[i];
-		str[i] = str[j];
-		str[j] = temp;
+	public void completePopulation() {
+        for(int i=0; i<l; i++)
+            population[i] = new Individual(offspring.get(i));
 	}
 
-	public double fitness(Point[] individual) {
-		
-		double rank = 0.0;
-		for (int i = 0; i < individual.length - 1; i++)
-			for (int j = 0; j < 2; j++)
-				rank += Math.abs(individual[i].getPoint()[j]
-						- individual[i + 1].getPoint()[j]);
-		
-		return rank;
-	}
-
-	public void readData(String filename) throws FileNotFoundException {
-		File file = new File(filename);
-		Scanner sc = new Scanner(file);
-		String dataString;
-		sc.nextLine();
-		sc.nextLine();
-		while (sc.hasNextLine()) {
-			data.add(new Point(sc.nextLine()));
-		}
-		sc.close();
+	public void printPopulation() {
+        System.out.println("Population: ");
+	    for (int i = 0; i < p; i++) {
+	        if(population[i] != null)
+	            System.out.println(population[i].toString());
+	    }
 	}
 
 	public static void main(String[] args) throws FileNotFoundException {
-		EA ea = new EA("Positions_PA-E.txt", 100, 20, 80);
-		
-		ea.initialiseIndividuals();
-		ea.externalSelection();
-		ea.parentSelection();
-		ea.generateOffspring();
-		ea.mutateOffspring();
+	    Scanner in = new Scanner(System.in);
+        int P, mu;
+        while(true){
+            System.out.println("Enter P number of individuals in population");
+            P = in.nextInt();
+            if (P > 0) break;
+        }
+        while(true){
+            System.out.println("Enter number of parents");
+            mu = in.nextInt();
+            if (mu > 0 && mu < P) break;
+        }
+        in.close();
 
+        Helper.readData("Positions_PA-E.txt");
+
+		EA ea = new EA(P, Helper.data.size(), mu, P-mu);
+		for(int i=0; i<100; i++) {
+            System.out.println("---------Step " + i + "--------");
+            ea.fitnessEvaluation();
+            ea.printPopulation();
+            ea.externalSelection();
+    		ea.parentSelection();
+    		ea.inheritance();
+    		ea.mutateOffspring();
+            ea.completePopulation();
+		}
 	}
 }
 
